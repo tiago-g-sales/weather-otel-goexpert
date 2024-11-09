@@ -5,11 +5,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/tiago-g-sales/temp-cep/pkg"
 	"github.com/tiago-g-sales/weather-otel-goexpert/internal/mocks"
 	"github.com/tiago-g-sales/weather-otel-goexpert/internal/model"
 	"github.com/tiago-g-sales/weather-otel-goexpert/internal/usecase"
+	"github.com/tiago-g-sales/weather-otel-goexpert/pkg"
 )
 
 

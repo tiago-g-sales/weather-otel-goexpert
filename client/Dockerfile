@@ -6,7 +6,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build --ldflags="-w -s" -o ms cmd/m
 
 FROM alpine:latest
 COPY --from=builder /app/ms .
-COPY --from=builder /app/config.env .
+
 
 
 CMD ["./ms"]

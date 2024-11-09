@@ -10,10 +10,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/tiago-g-sales/weather-otel-goexpert/configs"
 	"github.com/tiago-g-sales/weather-otel-goexpert/internal/model"
-
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
@@ -49,7 +46,6 @@ func (we *Webserver) CreateServer() *chi.Mux {
 
 type TemplateData struct {
 	Title              string
-	BackgroundColor    string
 	ResponseTime       time.Duration
 	ExternalCallMethod string
 	ExternalCallURL    string
@@ -67,12 +63,6 @@ const(
 
 func (h *Webserver) HandleRequest(w http.ResponseWriter, r *http.Request) {
 
-	configs, err := configs.LoadConfig(".")
-	if err != nil {
-		panic(err)
-	}
-	
-	
 	carrier := propagation.HeaderCarrier(r.Header)
 	ctx := r.Context()
 	ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
@@ -86,7 +76,7 @@ func (h *Webserver) HandleRequest(w http.ResponseWriter, r *http.Request) {
 
 	time.Sleep(time.Millisecond * h.TemplateData.ResponseTime)
 
-	if configs.ExternalCallURL != "" {
+	if h.TemplateData.ExternalCallURL != "" {
 		var req *http.Request
 		var err error
 
@@ -96,9 +86,9 @@ func (h *Webserver) HandleRequest(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		
-		if configs.ExternalCallMethod == "GET" {
-			req, err = http.NewRequestWithContext(ctx, "GET", configs.ExternalCallURL, nil)
-		} else if configs.ExternalCallMethod == "POST" {
+		if h.TemplateData.ExternalCallMethod == "GET" {
+			req, err = http.NewRequestWithContext(ctx, "GET", h.TemplateData.ExternalCallURL, nil)
+		} else if h.TemplateData.ExternalCallMethod == "POST" {
 			req, err = http.NewRequestWithContext(ctx, "POST", h.TemplateData.ExternalCallURL, nil)
 		} else {
 			http.Error(w, "Invalid ExternalCallMethod", http.StatusInternalServerError)

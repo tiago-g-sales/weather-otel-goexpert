@@ -69,7 +69,7 @@ func init() {
 }
 
 func main() {
-		sigCh := make(chan os.Signal, 1)
+	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -89,7 +89,6 @@ func main() {
 
 	templateData := &web.TemplateData{
 		Title:              viper.GetString("TITLE"),
-		BackgroundColor:    viper.GetString("BACKGROUND_COLOR"),
 		ResponseTime:       time.Duration(viper.GetInt("RESPONSE_TIME")),
 		ExternalCallURL:    viper.GetString("EXTERNAL_CALL_URL"),
 		ExternalCallMethod: viper.GetString("EXTERNAL_CALL_METHOD"),
@@ -100,8 +99,8 @@ func main() {
 	router := server.CreateServer()
 
 	go func() {
-		log.Println("Starting server on port", viper.GetString(":8080"))
-		if err := http.ListenAndServe(":8080", router); err != nil {
+		log.Println("Starting server on port", viper.GetString("HTTP_PORT"))
+		if err := http.ListenAndServe(viper.GetString("HTTP_PORT"), router); err != nil {
 			log.Fatal(err)
 		}
 	}()

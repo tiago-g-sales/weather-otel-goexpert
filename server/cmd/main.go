@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 
-
+	"log"
 	"net/http"
+
 	"time"
 
-	"github.com/tiago-g-sales/temp-cep/configs"
+	"github.com/spf13/viper"
+
 	"github.com/tiago-g-sales/weather-otel-goexpert/internal/handler"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
@@ -60,35 +63,15 @@ func initProvider(serviceName, collectorURL string) (func(context.Context) error
 	return tracerProvider.Shutdown, nil
 }
 
+func init() {
+	viper.AutomaticEnv()
+}
+
 func main(){
 
-	//sigCh := make(chan os.Signal, 1)
-	//signal.Notify(sigCh, os.Interrupt)
-
-	//ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	//defer cancel()
-
-	//shutdown, err := initProvider(viper.GetString("OTEL_SERVICE_NAME"), viper.GetString("OTEL_EXPORTER_OTLP_ENDPOINT"))
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//defer func() {
-	//	if err := shutdown(ctx); err != nil {
-//			log.Fatal("failed to shutdown TracerProvider: %w", err)
-//		}
-//	}()
-
-	tracer := otel.Tracer("microservice-tracer")
-
-	fmt.Println(tracer)
-
-	configs, err := configs.LoadConfig(".")
-	if err != nil {
-		panic(err)
-	}
-	
 	http.HandleFunc("/", handler.FindTempByCepHandler)
-	http.ListenAndServe(configs.WebServerPort, nil)
+	log.Println("Starting server on port", viper.GetString("HTTP_PORT"))
+	http.ListenAndServe(viper.GetString("HTTP_PORT"), nil)
 }
 
 

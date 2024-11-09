@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/tiago-g-sales/temp-cep/configs"
+	"github.com/spf13/viper"
 	"github.com/tiago-g-sales/weather-otel-goexpert/internal/model"
 
 	"github.com/tiago-g-sales/temp-cep/pkg"
@@ -27,10 +27,7 @@ func NewHTTPClientTemp (client http.Client) (*HTTPClientTemp){
 
 func (h *HTTPClientTemp) FindTemp(localidade string) (*model.Temperatura, error) {
 
-	configs, err := configs.LoadConfig(".")
-	if err != nil {
-		return nil, err
-	}
+
 	temp := model.Temperatura{}
 	temp.City = localidade
 
@@ -40,7 +37,7 @@ func (h *HTTPClientTemp) FindTemp(localidade string) (*model.Temperatura, error)
 	}
 	q := req.URL.Query() 
 	q.Add("q", localidade)
-	q.Add("key", configs.API_KEY )
+	q.Add("key", viper.GetString("API_KEY"))
 	req.URL.RawQuery = q.Encode()		
 
 	resp, err := h.client.Do(req)
