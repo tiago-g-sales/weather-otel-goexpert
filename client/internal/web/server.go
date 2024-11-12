@@ -41,7 +41,7 @@ func (we *Webserver) CreateServer() *chi.Mux {
 	router.Use(middleware.Timeout(60 * time.Second))
 	// promhttp
 	router.Handle("/metrics", promhttp.Handler())
-	router.Get("/", we.HandleRequest)
+	router.Post("/", we.HandleRequest)
 	return router
 }
 
@@ -57,8 +57,6 @@ type TemplateData struct {
 
 const(
 	INVALID_ZIP_CODE = "invalid zipcode"
-	CAN_NOT_FIND_ZIPCODE = "can not find zipcode"
-	QUERY_PARAMETER = "cep"
 	LEN_ZIP_CODE = 8
 )
 
@@ -79,12 +77,24 @@ func (h *Webserver) HandleRequest(w http.ResponseWriter, r *http.Request) {
 		var req *http.Request
 		var err error
 
-		cepParam := r.URL.Query().Get(QUERY_PARAMETER)
-		if cepParam == ""{
-			http.Error(w,"Invalid Parameter CEP", http.StatusUnprocessableEntity )
+		var dto model.Cep
+		err = json.NewDecoder(r.Body).Decode(&dto)
+		if err != nil {
+			http.Error(w, INVALID_ZIP_CODE, http.StatusUnprocessableEntity)
 			return
 		}
-		
+	
+		if dto.Cep == ""{
+			http.Error(w, INVALID_ZIP_CODE , http.StatusUnprocessableEntity )
+			return
+		}
+	
+		if len(dto.Cep) > LEN_ZIP_CODE || len(dto.Cep) < LEN_ZIP_CODE  {
+			http.Error(w, INVALID_ZIP_CODE , http.StatusUnprocessableEntity )
+			return		
+		}
+
+
 		if h.TemplateData.ExternalCallMethod == "GET" {
 			req, err = http.NewRequestWithContext(ctx, "GET", h.TemplateData.ExternalCallURL, nil)
 		} else if h.TemplateData.ExternalCallMethod == "POST" {
@@ -102,7 +112,7 @@ func (h *Webserver) HandleRequest(w http.ResponseWriter, r *http.Request) {
 		h := http.Client{}
 
 		q := req.URL.Query() 
-		q.Add("cep", cepParam)
+		q.Add("cep", dto.Cep)
 		req.URL.RawQuery = q.Encode()	
 		resp, err := h.Do(req)
 		if err != nil {

@@ -8,3 +8,4 @@ type Temperatura struct {
 	Temp_K float64 `json:"temp_K"`
 }
 
+
