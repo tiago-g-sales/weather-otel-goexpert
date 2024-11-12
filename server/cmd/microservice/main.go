@@ -6,12 +6,14 @@ import (
 
 	"log"
 	"net/http"
-
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/spf13/viper"
-
-	"github.com/tiago-g-sales/weather-otel-goexpert/internal/handler"
+	"github.com/tiago-g-sales/weather-otel-goexpert/internal/web"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -19,8 +21,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func initProvider(serviceName, collectorURL string) (func(context.Context) error, error) {
@@ -63,21 +63,53 @@ func initProvider(serviceName, collectorURL string) (func(context.Context) error
 	return tracerProvider.Shutdown, nil
 }
 
+// load env vars cfg
 func init() {
 	viper.AutomaticEnv()
 }
 
-func main(){
+func main() {
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt)
 
-	http.HandleFunc("/", handler.FindTempByCepHandler)
-	log.Println("Starting server on port", viper.GetString("HTTP_PORT"))
-	http.ListenAndServe(viper.GetString("HTTP_PORT"), nil)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
+
+	shutdown, err := initProvider(viper.GetString("OTEL_SERVICE_NAME"), viper.GetString("OTEL_EXPORTER_OTLP_ENDPOINT"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := shutdown(ctx); err != nil {
+			log.Fatal("failed to shutdown TracerProvider: %w", err)
+		}
+	}()
+	tracer := otel.Tracer("microservice-tracer")
+
+	templateData := &web.TemplateData{
+		Title:              viper.GetString("TITLE"),
+		ResponseTime:       time.Duration(viper.GetInt("RESPONSE_TIME")),
+		ExternalCallURL:    viper.GetString("EXTERNAL_CALL_URL"),
+		ExternalCallMethod: viper.GetString("EXTERNAL_CALL_METHOD"),
+		RequestNameOTEL:    viper.GetString("REQUEST_NAME_OTEL"),
+		OTELTracer:         tracer,
+	}
+	server := web.NewServer(templateData)
+	router := server.CreateServer()
+
+	go func() {
+		log.Println("Starting server on port", viper.GetString("HTTP_PORT"))
+		if err := http.ListenAndServe(viper.GetString("HTTP_PORT"), router); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	select {
+	case <-sigCh:
+		log.Println("Shutting down gracefully, CTRL+C pressed...")
+	case <-ctx.Done():
+		log.Println("Shutting down due to other reason...")
+	}
+
 }
-
-
-
-
-
-
-
-

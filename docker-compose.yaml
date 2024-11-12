@@ -44,11 +44,10 @@ services:
     environment:
       - TITLE=Microservice Demo
       - CONTENT=This is a demo of a microservice
-      - RESPONSE_TIME=1000
       - EXTERNAL_CALL_URL=http://weather-otel-server:8181
       - EXTERNAL_CALL_METHOD=GET
-      - REQUEST_NAME_OTEL=microservice-demo-request
-      - OTEL_SERVICE_NAME=microservice-demo
+      - REQUEST_NAME_OTEL=microservice-client-request
+      - OTEL_SERVICE_NAME=microservice-client
       - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
       - HTTP_PORT=:8080
     ports:
@@ -67,9 +66,8 @@ services:
       - CONTENT=This is a demo of a microservice
       - EXTERNAL_CALL_URL=http://server:8181
       - EXTERNAL_CALL_METHOD=GET
-      - RESPONSE_TIME=2000
-      - REQUEST_NAME_OTEL=microservice-demo2-request
-      - OTEL_SERVICE_NAME=microservice-demo2
+      - REQUEST_NAME_OTEL=microservice-server-request
+      - OTEL_SERVICE_NAME=microservice-server
       - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
       - API_KEY=6d805400cfaf4dde86e221722241510
       - HTTP_PORT=:8181
