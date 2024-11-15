@@ -12,6 +12,7 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/tiago-g-sales/weather-otel-goexpert/internal/web"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -70,29 +71,33 @@ func init() {
 
 func main() {
 
+
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
+
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
+	otel_active := viper.GetString("OTEL")
 
-	shutdown, err := initProvider(viper.GetString("OTEL_SERVICE_NAME"), viper.GetString("OTEL_EXPORTER_OTLP_ENDPOINT"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func() {
+	if otel_active != "false" {
+		shutdown, err := initProvider(viper.GetString("OTEL_SERVICE_NAME"), viper.GetString("OTEL_EXPORTER_OTLP_ENDPOINT"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer func() {
 		if err := shutdown(ctx); err != nil {
 			log.Fatal("failed to shutdown TracerProvider: %w", err)
 		}
-	}()
+		}()
 
-	tracer := otel.Tracer("microservice-tracer")
-	if err != nil {
-		log.Fatal(err)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
-
+	tracer := otel.Tracer("microservice-tracer")
 	templateData := &web.TemplateData{
 		Title:              viper.GetString("TITLE"),
 		ResponseTime:       time.Duration(viper.GetInt("RESPONSE_TIME")),

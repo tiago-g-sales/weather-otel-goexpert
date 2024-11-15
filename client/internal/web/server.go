@@ -53,11 +53,11 @@ type TemplateData struct {
 	Content            string
 	RequestNameOTEL    string
 	OTELTracer         trace.Tracer
-	ZipKinTracer	   trace.Tracer
 }
 
 const(
 	INVALID_ZIP_CODE = "invalid zipcode"
+	NOTFOUND_ZIP_COD = "can not find zipcode"
 	LEN_ZIP_CODE = 8
 )
 
@@ -117,7 +117,7 @@ func (h *Webserver) HandleRequest(w http.ResponseWriter, r *http.Request) {
 		req.URL.RawQuery = q.Encode()	
 		resp, err := h.Do(req)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, NOTFOUND_ZIP_COD, http.StatusNotFound) 
 			return
 		}
 		defer resp.Body.Close()

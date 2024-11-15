@@ -75,16 +75,19 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
+	otel_active := viper.GetString("OTEL")
 
-	shutdown, err := initProvider(viper.GetString("OTEL_SERVICE_NAME"), viper.GetString("OTEL_EXPORTER_OTLP_ENDPOINT"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func() {
-		if err := shutdown(ctx); err != nil {
-			log.Fatal("failed to shutdown TracerProvider: %w", err)
+	if otel_active != "false" {
+		shutdown, err := initProvider(viper.GetString("OTEL_SERVICE_NAME"), viper.GetString("OTEL_EXPORTER_OTLP_ENDPOINT"))
+		if err != nil {
+			log.Fatal(err)
 		}
-	}()
+		defer func() {
+			if err := shutdown(ctx); err != nil {
+				log.Fatal("failed to shutdown TracerProvider: %w", err)
+			}
+		}()
+	}
 	tracer := otel.Tracer("microservice-tracer")
 
 	templateData := &web.TemplateData{
