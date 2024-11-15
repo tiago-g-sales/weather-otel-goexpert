@@ -1,27 +1,34 @@
 # temp-cep
-Sistema retorna  clima atual  baseado em um CEP informado
+Sistema distribuido em 2 serviços que retornam o clima atual baseado em um CEP informado
 
-# Desafio GOLang Consulta Temperatura baseado em um CEP informado - FullCycle 
+# Desafio GOLang Observabilidade com trace distribuído - Consulta Temperatura baseado em um CEP informado - FullCycle 
 
 Aplicação em Go sendo: 
-  - Servidor HTTP Rest
+  - Servidor HTTP Rest Client
+  - Servidor HTTP Rest Server
+  - Servidor Zipkin para apresentação do trace distribuído
+  - Servidor Jaeger para apresentação do trace distribuído
+  - Servidor Prometheus
+  - Servidor Opentelemetry
+  - Servidor Grafana
 
 &nbsp;
-- **Rodando em Cloud Google com CloudRun**
-- **Aplicação em Container com Docker - Dockerfile e teste unitário**
+- **Aplicação em Container com - Docker-compose e Dockerfile**
 
 ## Funcionalidades
 
-- **Consulta de Temperatura com retorno em Celsius, Kelvin e Fahrenheit**
+- **Consulta de Temperatura com retorno Localidade, Celsius, Kelvin e Fahrenheit**
   - O servidor permite consultar a temperatura informando um CEP.
   - Retorno esperado:
 ```
   {
+  "city": "São Paulo",
 	"temp_C": 22.3,
 	"temp_F": 72.1,
 	"temp_K": 295.3
   } 
 ``` 
+  - Sendo city = A cidade do cep informado
   - Sendo temp_F = Fahrenheit
   - Sendo temp_C = Celsius
   - Sendo temp_K = Kelvin  
@@ -40,45 +47,24 @@ Aplicação em Go sendo:
 &nbsp;
 
 ```bash
-git clone https://github.com/tiago-g-sales/temp-cep.git
+git clone https://github.com/tiago-g-sales/weather-otel-goexpert.git
 ```
 &nbsp;
 3. **Acesse a pasta do app:**
 &nbsp;
 
 ```bash
-cd temp-cep
+cd weather-otel-goexpert
 ```
 &nbsp;
-4. **Rode o docker para buildar a imagem gerando o container:**
-&nbsp;
-
-```bash 
- docker build -t nome_que_preferir/temp-cep:latest .
-```
-
-&nbsp;
-4. **Rode o docker executar ocontainer:**
+4. **Rode o docker-compose para buildar e executar toda a stack de observabilidade:**
 &nbsp;
 
 ```bash 
- docker run --rm -p 8080:8080 nome_que_preferir/temp-cep
+ docker-compose up
 ```
 
-5. **Acesse a pasta cmd/ e rode o main.go:**
 &nbsp;
-
-```bash 
-cd cmd/
-```
-
-```bash 
-go run main.go
-```
-
-Observação: Necessario informar a API KEY da plataforma de consulta de temperatura no arquivo config.env na raiz do projeto conforma abaixo:
-WEB_SERVER_PORT=:8080
-API_KEY=XXXXXXXXXXXXXXXXXXXXX
 
 
 ## Como testar localmente:
@@ -88,23 +74,31 @@ HTTP server on port :8080 <br />
 
 ### HTTP
  - Execute o curl abaixo ou use um aplicação client REST para realizar a requisição.   
- - curl --request GET \
-  --url 'http://localhost:8080/?cep=CEP_DESEJADO_8_NUMEROS' \
-  --header 'User-Agent: insomnia/10.0.0'
+  curl --request POST \
+  --url http://localhost:8080/ \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: insomnia/10.0.0' \
+  --data '{
+	"cep": "04911000"
+}'
 
-## Como executar os teste unitários e o relatorio de cobertura de testes:
- - Coverage
- ```bash 
- - go test ./... -coverprofile=coverage.out
- ```
- 
- ```bash 
- - go tool cover -html=coverage.out
- ```  
+&nbsp;
+5. **Acessar o Zipkin para consulta do trace distribuído:**
 
-## Como executando a aplicação hospedada no Google Cloud (CloudRun):
- - Acesse a url abaixo no navegador ou outa aplicação client REST para realizar a requisição:
- - https://cloudrun-goexpert-challenge-temp-by-cep-cq6sddvtja-uc.a.run.app/?cep=CEP_DESEJADO_8_NUMEROS
+  - http://localhost:9411/
 
-Observação: Informar o CEP numerico 8 caracteres como "query parameter" 
+&nbsp;
+6. **Acessar o Jaeger para consulta do trace distribuído:**
 
+  - http://localhost:16686/ 
+
+&nbsp;
+7. **Acessar o Grafana para consulta do trace distribuído:**
+
+  - http://localhost:3001/
+
+&nbsp;
+8. **Acessar o Prometheus para consulta do trace distribuído:**
+
+  - http://localhost:9090/
+  

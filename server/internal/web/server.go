@@ -136,8 +136,8 @@ func (h *Webserver) HandleRequest(w http.ResponseWriter, r *http.Request) {
 
 		temp := model.Temperatura{}
 
-		ctx, span = h.TemplateData.OTELTracer.Start(ctx, "Chamada externa Temperatura "+h.TemplateData.RequestNameOTEL)
-		defer span.End()
+		ctx, span_temp := h.TemplateData.OTELTracer.Start(ctx, "Chamada externa Temperatura "+h.TemplateData.RequestNameOTEL)
+		defer span_temp.End()
 
 		req, err = http.NewRequestWithContext(ctx, "GET", "https://api.weatherapi.com/v1/current.json", nil)
 		if err != nil {
