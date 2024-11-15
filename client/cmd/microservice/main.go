@@ -69,6 +69,7 @@ func init() {
 }
 
 func main() {
+
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
 
@@ -87,6 +88,10 @@ func main() {
 	}()
 
 	tracer := otel.Tracer("microservice-tracer")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 
 	templateData := &web.TemplateData{
 		Title:              viper.GetString("TITLE"),
@@ -112,5 +117,23 @@ func main() {
 	case <-ctx.Done():
 		log.Println("Shutting down due to other reason...")
 	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
