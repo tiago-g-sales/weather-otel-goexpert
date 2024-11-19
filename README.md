@@ -1,4 +1,4 @@
-# temp-cep
+# weather-otel-goexpert
 Sistema distribuido em 2 serviços que retornam o clima atual baseado em um CEP informado
 
 # Desafio GOLang Observabilidade com trace distribuído - Consulta Temperatura baseado em um CEP informado - FullCycle 
